@@ -23,6 +23,20 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
             Ok(Response::new(Body::from(reversed_body)))
         }
 
+        (&Method::POST, "/parrot") => {
+            let body_bytes = hyper::body::to_bytes(req.into_body()).await?;
+            let body_str = match std::str::from_utf8(&body_bytes) {
+                Ok(v) => v,
+                Err(e) => {
+                    let mut res = Response::default();
+                    *res.status_mut() = StatusCode::BAD_REQUEST;
+                    return Ok(res)
+                }
+            };
+            let response = format!("You said: {}", body_str);
+            Ok(Response::new(Body::from(response)))
+        },
+
         // Return the 404 Not Found for other routes.
         _ => {
             let mut not_found = Response::default();
